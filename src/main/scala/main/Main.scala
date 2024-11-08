@@ -122,7 +122,11 @@ object FuncionsPrimeraPartPractica {
   def vector(fitxer1: String, fitxer2: String, stopWordsFile: String, n: Int): Unit = {
     val stopWords = loadStopWords(stopWordsFile)
     val similarity = cosinesim(fitxer1, fitxer2, stopWords, n)
-    println(f"Cosine Similarity: $similarity%.4f")
+    if(n == 0) println(f"Cosine Similarity: $similarity%.4f")
+    else if(n == 1) println(f"Cosine Similarity with digrams: $similarity%.4f")
+    else if(n == 2) println(f"Cosine Similarity with trigrams: $similarity%.4f")
+    else println(f"Cosine Similarity with ngrams: $similarity%.4f")
+
   }
 
   // Funció per normalitzar les freqüències de paraules
