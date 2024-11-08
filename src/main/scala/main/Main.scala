@@ -170,6 +170,7 @@ object FuncionsPrimeraPartPractica {
   }
 }
 
+
 object fitxers extends App{
   // ProcessListStrings.mostrarTextDirectori("primeraPartPractica")
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "", usarStopWords = false)
