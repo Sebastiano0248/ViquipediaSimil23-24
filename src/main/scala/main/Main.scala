@@ -22,7 +22,7 @@ import scala.language.postfixOps
 
 object FuncionsPrimeraPartPractica {
 
-  val PATH = System.getProperty("user.dir") + "/src/main/scala/data/"
+  val PATH = System.getProperty("user.dir") + "/primeraPartPractica/"
 
   def main(fitxer: String, stopWordsFile: String, usarStopWords: Boolean): Unit = {
     mostrar(fitxer, stopWordsFile, usarStopWords)
@@ -74,7 +74,8 @@ object FuncionsPrimeraPartPractica {
       .view.mapValues(_.length).toMap
   }
 
-  def paraulafreqfreq(text: String): Unit = {
+  def paraulafreqfreq(file: String): Unit = {
+    val text = Source.fromFile(PATH + file).mkString
     val wordFreqs = freq(text)
     val freqOfFreqs = wordFreqs.values
       .groupBy(identity)
@@ -149,11 +150,10 @@ object FuncionsPrimeraPartPractica {
 
 
 object fitxers extends App{
-  val PATH = System.getProperty("user.dir") + "/src/main/scala/data/"
   // ProcessListStrings.mostrarTextDirectori("primeraPartPractica")
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "", usarStopWords = false)
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "english-stop.txt", usarStopWords = true)
-  FuncionsPrimeraPartPractica.paraulafreqfreq(Source.fromFile(PATH + "pg11-net.txt").mkString)
+  FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
   FuncionsPrimeraPartPractica.ngramFreq("pg11-net.txt", 3)
   FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt")
 }
