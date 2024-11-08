@@ -1,3 +1,7 @@
+/*
+  Fet per Genís Alvarado & Joan Massallé
+*/
+
 package main
 
 import java.io.File
