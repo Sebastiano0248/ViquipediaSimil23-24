@@ -22,24 +22,27 @@ import scala.language.postfixOps
 
 object FuncionsPrimeraPartPractica {
 
-  val PATH = System.getProperty("user.dir") + "/primeraPartPractica/"
+  val PATH = System.getProperty("user.dir") + "/primeraPartPractica/" // Camí a les dades
 
-  def main(fitxer: String, stopWordsFile: String, usarStopWords: Boolean): Unit = {
-    mostrar(fitxer, stopWordsFile, usarStopWords)
-  }
-
-  // Funció mostrar, decideix si mostra freq o nonstopfreq
-  def mostrar(fitxer: String, stopWordsFile: String, usarStopWords: Boolean): Unit = {
-    val currentDir = System.getProperty("user.dir")
+  // Funció mostrar freqüències, decideix si mostra les freqüències de paraules normals o sense stop-words
+  def mostrarFreq(fitxer: String, stopWordsFile: String, usarStopWords: Boolean): Unit = {
+    val currentDir = System.getProperty("user.dir")  // Obté el directori actual
     println("El directorio actual es: " + currentDir)
+
+    // Llegeix el contingut del fitxer
     val text = Source.fromFile(PATH + fitxer).mkString
+
+    // Carrega les stop-words si cal
     val stopWords = if (usarStopWords) loadStopWords(stopWordsFile) else Set.empty[String]
+    // Calcula les freqüències de paraules, excloent les stop-words si cal
     val freqMap = if (usarStopWords) nonstopfreq(text, stopWords) else freq(text)
 
+    // Calcula el nombre total de paraules i paraules diferents
     val totalWords = freqMap.values.sum
     val differentWords = freqMap.size
     println(s"Num de Paraules: $totalWords\tDiferents: $differentWords")
 
+    // Mostra les 10 paraules més freqüents i la seva freqüència relativa
     println(f"Paraules\tocurrències\tfreqüència")
     println("-" * 50)
     freqMap.toList.sortBy(-_._2).take(10).foreach {
@@ -52,76 +55,77 @@ object FuncionsPrimeraPartPractica {
     Source.fromFile(PATH + filePath).getLines().map(_.trim.toLowerCase).toSet
   }
 
-  // Funció per calcular la freqüència de paraules
+  def cleanText(text: String): Array[String] = {
+    text.toLowerCase
+      .replaceAll("'", " ")  // Substitueix les cometes per espais
+      .replaceAll("[^\\p{L}\\s]", "")
+      .split("\\s+")  // Divideix el text en paraules
+      .filter(_.nonEmpty)  // Filtra les paraules buides
+  }
+
   def freq(text: String): Map[String, Int] = {
-    text.toLowerCase
-      .replaceAll("'", " ")
-      .replaceAll("[^a-zàáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïīĭįıĵķĺļľŀłñńņňŋòóôõöøōŏőŕŗřśŝşšţťŧùúûüūŭůűųŵýÿŷźżž\\s]", "")
-      .split("\\s+")
-      .filter(_.nonEmpty)
-      .groupBy(identity)
-      .view.mapValues(_.length).toMap
+    cleanText(text)  // Crida a cleanText que retorna un array de paraules
+      .groupBy(identity)  // Agrupa les paraules pel seu valor (paraula)
+      .view.mapValues(_.length).toMap  // Compta les ocurrències de cada paraula
   }
 
-  // Funció per calcular la freqüència de paraules sense les stop-words
   def nonstopfreq(text: String, stopWords: Set[String]): Map[String, Int] = {
-    text.toLowerCase
-      .replaceAll("'", " ")
-      .replaceAll("[^a-zàáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïīĭįıĵķĺļľŀłñńņňŋòóôõöøōŏőŕŗřśŝşšţťŧùúûüūŭůűųŵýÿŷźżž\\s]", "")
-      .split("\\s+")
-      .filter(word => word.nonEmpty && !stopWords.contains(word))
-      .groupBy(identity)
-      .view.mapValues(_.length).toMap
+    cleanText(text)  // Crida a cleanText que retorna un array de paraules
+      .filter(word => !stopWords.contains(word))  // Filtra les paraules de parada (stop-words)
+      .groupBy(identity)  // Agrupa les paraules pel seu valor (paraula)
+      .view.mapValues(_.length).toMap  // Compta les ocurrències de cada paraula
   }
 
+  // Funció per mostrar les freqüències de les paraules més i menys freqüents
   def paraulafreqfreq(file: String): Unit = {
     val text = Source.fromFile(PATH + file).mkString
-    val wordFreqs = freq(text)
+    val wordFreqs = freq(text)  // Calcula les freqüències de paraules
     val freqOfFreqs = wordFreqs.values
-      .groupBy(identity)
+      .groupBy(identity)  // Agrupa les freqüències de les freqüències
       .view.mapValues(_.size)
       .toMap
 
-    val sortedFreqs = freqOfFreqs.toList.sortBy(-_._2)
+    val sortedFreqs = freqOfFreqs.toList.sortBy(-_._2)  // Ordena per freqüència
 
+    // Mostra les 10 freqüències més freqüents
     println("Les 10 freqüències més freqüents:")
     sortedFreqs.take(10).foreach {
       case (freq, count) => println(s"$count paraules apareixen $freq vegades")
     }
 
+    // Mostra les 5 freqüències menys freqüents
     println("\nLes 5 freqüències menys freqüents:")
     sortedFreqs.reverse.take(5).foreach {
       case (freq, count) => println(s"$count paraules apareixen $freq vegades")
     }
   }
 
-  // Funció per generar els ngrams i comptar les seves freqüències
+  // Funció per generar ngrams i comptar les seves freqüències
   def ngramFreq(fitxer: String, n: Int): Map[String, Int] = {
     val text = Source.fromFile(PATH + fitxer).mkString
-    text.toLowerCase
-      .replaceAll("'", " ")
-      .replaceAll("[^a-zàáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïīĭįıĵķĺļľŀłñńņňŋòóôõöøōŏőŕŗřśŝşšţťŧùúûüūŭůűųŵýÿŷźżž\\s]", "")
-      .split("\\s+")
-      .filter(_.nonEmpty)
-      .sliding(n)
-      .map(_.mkString(" "))
+    cleanText(text)  // Crida a cleanText per netejar i dividir el text
+      .sliding(n)  // Genera ngrams de longitud n
+      .map(_.mkString(" "))  // Uneix els ngrams en una cadena
       .toList
-      .groupBy(identity)
-      .view.mapValues(_.length).toMap
+      .groupBy(identity)  // Agrupa els ngrams per identificar-los
+      .view.mapValues(_.length).toMap  // Compta la freqüència de cada ngram
   }
 
+  // Funció per mostrar els ngrams més freqüents
   def showNgramFreq(fitxer: String, n: Int): Unit = {
-    val ngrams = ngramFreq(fitxer, n)
+    val ngrams = ngramFreq(fitxer, n)  // Obté els ngrams i les seves freqüències
 
+    // Mostra els 10 ngrams més freqüents
     println(s"\nLes 10 ngrams més freqüents de longitud $n:")
     ngrams.toList.sortBy(-_._2).take(10).foreach {
       case (ngram, count) => println(f"$ngram%-20s\t$count%-10d")
     }
   }
 
+  // Funció per calcular la similitud de cosinus entre dos documents
   def vector(fitxer1: String, fitxer2: String, stopWordsFile: String, n: Int): Unit = {
-    val stopWords = loadStopWords(stopWordsFile)
-    val similarity = cosinesim(fitxer1, fitxer2, stopWords, n)
+    val stopWords = loadStopWords(stopWordsFile)  // Carrega les stop-words
+    val similarity = cosinesim(fitxer1, fitxer2, stopWords, n)  // Calcula la similitud de cosinus
     if(n == 1) println(f"Cosine Similarity: $similarity%.4f")
     else if(n == 2) println(f"Cosine Similarity with digrams: $similarity%.4f")
     else if(n == 3) println(f"Cosine Similarity with trigrams: $similarity%.4f")
@@ -130,50 +134,64 @@ object FuncionsPrimeraPartPractica {
 
   // Funció per normalitzar les freqüències de paraules
   def normalizedFreq(wordFreq: Map[String, Int]): Map[String, Double] = {
-    val maxFreq = wordFreq.values.max.toDouble
+    val maxFreq = wordFreq.values.max.toDouble  // Obté la màxima freqüència entre totes les paraules
+    // Normalitza les freqüències dividint cada freqüència per la màxima
     wordFreq.view.mapValues(freq => freq / maxFreq).toMap
   }
 
   // Funció per calcular la similitud de cosinus entre dos documents
   def cosinesim(fitxer1: String, fitxer2: String, stopWords: Set[String], n: Int): Double = {
-    if(n == 1){
-      val text1 = Source.fromFile(PATH + fitxer1).mkString
-      val text2 = Source.fromFile(PATH + fitxer2).mkString
+    if(n == 1){  // Si n és 1, calcula la similitud de cosinus per paraules individuals
+      val text1 = Source.fromFile(PATH + fitxer1).mkString  // Llegeix el primer document
+      val text2 = Source.fromFile(PATH + fitxer2).mkString  // Llegeix el segon document
+
+      // Calcula les freqüències normalitzades de les paraules dels dos textos sense les stop-words
       val freq1 = normalizedFreq(nonstopfreq(text1, stopWords))
       val freq2 = normalizedFreq(nonstopfreq(text2, stopWords))
 
+      // Obté la unió de les paraules dels dos textos
       val allWords = freq1.keySet.union(freq2.keySet)
-      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, 0.0))
-      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, 0.0))
 
+      // Construeix els vectors de les freqüències per cada paraula
+      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, 0.0))  // Vector de freqüències per al primer document
+      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, 0.0))  // Vector de freqüències per al segon document
+
+      // Calcula el producte escalar dels dos vectors
       val dotProduct = vec1.zip(vec2).map { case (a, b) => a * b }.sum
 
-      val magnitude1 = sqrt(vec1.map(a => a * a).sum)
-      val magnitude2 = sqrt(vec2.map(b => b * b).sum)
+      // Calcula la magnitud (norma) de cada vector
+      val magnitude1 = sqrt(vec1.map(a => a * a).sum)  // Magnitud del primer vector
+      val magnitude2 = sqrt(vec2.map(b => b * b).sum)  // Magnitud del segon vector
 
+      // Retorna la similitud de cosinus, assegurant-se que les magnituds no siguin zero
       if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
-    } else{
-      val freq1 = ngramFreq(fitxer1, n)
-      val freq2 = ngramFreq(fitxer2, n)
+    } else {  // Si n és més gran que 1, es calcula la similitud de cosinus per ngrams
+      val freq1 = ngramFreq(fitxer1, n)  // Obtén les freqüències de ngrams pel primer document
+      val freq2 = ngramFreq(fitxer2, n)  // Obtén les freqüències de ngrams pel segon document
 
+      // Obté la unió de tots els ngrams dels dos documents
       val allWords = freq1.keySet.union(freq2.keySet)
-      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, n).toDouble)
-      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, n).toDouble)
 
+      // Construeix els vectors de les freqüències per cada ngram
+      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, n).toDouble)  // Vector de freqüències per al primer document
+      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, n).toDouble)  // Vector de freqüències per al segon document
+
+      // Calcula el producte escalar dels dos vectors
       val dotProduct = vec1.zip(vec2).map { case (a, b) => a * b }.sum
 
-      val magnitude1 = sqrt(vec1.map(a => a * a).sum)
-      val magnitude2 = sqrt(vec2.map(b => b * b).sum)
+      // Calcula la magnitud (norma) de cada vector
+      val magnitude1 = sqrt(vec1.map(a => a * a).sum)  // Magnitud del primer vector
+      val magnitude2 = sqrt(vec2.map(b => b * b).sum)  // Magnitud del segon vector
 
+      // Retorna la similitud de cosinus, assegurant-se que les magnituds no siguin zero
       if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
     }
   }
 }
 
 object fitxers extends App{
-  // ProcessListStrings.mostrarTextDirectori("primeraPartPractica")
-  FuncionsPrimeraPartPractica.main("pg11-net.txt", "", usarStopWords = false)
-  FuncionsPrimeraPartPractica.main("pg11-net.txt", "english-stop.txt", usarStopWords = true)
+  FuncionsPrimeraPartPractica.mostrarFreq("pg11-net.txt", "", usarStopWords = false)
+  FuncionsPrimeraPartPractica.mostrarFreq("pg11-net.txt", "english-stop.txt", usarStopWords = true)
   FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
   FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 3)
   FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 1)
