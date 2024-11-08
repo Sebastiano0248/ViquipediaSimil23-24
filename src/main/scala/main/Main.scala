@@ -122,7 +122,7 @@ object FuncionsPrimeraPartPractica {
   def vector(fitxer1: String, fitxer2: String, stopWordsFile: String, n: Int): Unit = {
     val stopWords = loadStopWords(stopWordsFile)
     val similarity = cosinesim(fitxer1, fitxer2, stopWords, n)
-    if(n == 0) println(f"Cosine Similarity: $similarity%.4f")
+    if(n == 1) println(f"Cosine Similarity: $similarity%.4f")
     else if(n == 2) println(f"Cosine Similarity with digrams: $similarity%.4f")
     else if(n == 3) println(f"Cosine Similarity with trigrams: $similarity%.4f")
     else println(f"Cosine Similarity with ngrams: $similarity%.4f")
@@ -136,7 +136,7 @@ object FuncionsPrimeraPartPractica {
 
   // Funció per calcular la similitud de cosinus entre dos documents
   def cosinesim(fitxer1: String, fitxer2: String, stopWords: Set[String], n: Int): Double = {
-    if(n == 0){
+    if(n == 1){
       val text1 = Source.fromFile(PATH + fitxer1).mkString
       val text2 = Source.fromFile(PATH + fitxer2).mkString
       val freq1 = normalizedFreq(nonstopfreq(text1, stopWords))
@@ -177,9 +177,9 @@ object fitxers extends App{
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "english-stop.txt", usarStopWords = true)
   FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
   FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 3)
-  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 0)
-  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 2)
-  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 3)
+  FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 1)
+  FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 2)
+  FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 3)
 }
 
 object tractaxml extends App {
