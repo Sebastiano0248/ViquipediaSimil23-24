@@ -96,9 +96,9 @@ object FuncionsPrimeraPartPractica {
   }
 
   // Funció per generar els ngrams i comptar les seves freqüències
-  def ngramFreq(fitxer: String, n: Int): Unit = {
+  def ngramFreq(fitxer: String, n: Int): Map[String, Int] = {
     val text = Source.fromFile(PATH + fitxer).mkString
-    val ngrams = text.toLowerCase
+    text.toLowerCase
       .replaceAll("'", " ")
       .replaceAll("[^a-zàáâãäåāăąçćĉċčďđèéêëēĕėęěĝğġģĥħìíîïīĭįıĵķĺļľŀłñńņňŋòóôõöøōŏőŕŗřśŝşšţťŧùúûüūŭůűųŵýÿŷźżž\\s]", "")
       .split("\\s+")
@@ -108,7 +108,10 @@ object FuncionsPrimeraPartPractica {
       .toList
       .groupBy(identity)
       .view.mapValues(_.length).toMap
+  }
 
+  def showNgramFreq(fitxer: String, n: Int): Unit = {
+    val ngrams = ngramFreq(fitxer, n)
 
     println(s"\nLes 10 ngrams més freqüents de longitud $n:")
     ngrams.toList.sortBy(-_._2).take(10).foreach {
@@ -116,11 +119,11 @@ object FuncionsPrimeraPartPractica {
     }
   }
 
-  def vector(fitxer1: String, fitxer2: String, stopWordsFile: String): Unit = {
+  def vector(fitxer1: String, fitxer2: String, stopWordsFile: String, n: Int): Unit = {
     val stopWords = loadStopWords(stopWordsFile)
     val text1 = Source.fromFile(PATH + fitxer1).mkString
     val text2 = Source.fromFile(PATH + fitxer2).mkString
-    val similarity = cosinesim(text1, text2, stopWords)
+    val similarity = cosinesim(text1, text2, stopWords, n)
     println(f"Cosine Similarity: $similarity%.4f")
   }
 
@@ -131,20 +134,36 @@ object FuncionsPrimeraPartPractica {
   }
 
   // Funció per calcular la similitud de cosinus entre dos documents
-  def cosinesim(text1: String, text2: String, stopWords: Set[String]): Double = {
-    val freq1 = normalizedFreq(nonstopfreq(text1, stopWords))
-    val freq2 = normalizedFreq(nonstopfreq(text2, stopWords))
+  def cosinesim(text1: String, text2: String, stopWords: Set[String], n: Int): Double = {
+    if(n == 0){
+      val freq1 = normalizedFreq(nonstopfreq(text1, stopWords))
+      val freq2 = normalizedFreq(nonstopfreq(text2, stopWords))
 
-    val allWords = freq1.keySet.union(freq2.keySet)
-    val vec1 = allWords.toList.map(word => freq1.getOrElse(word, 0.0))
-    val vec2 = allWords.toList.map(word => freq2.getOrElse(word, 0.0))
+      val allWords = freq1.keySet.union(freq2.keySet)
+      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, 0.0))
+      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, 0.0))
 
-    val dotProduct = vec1.zip(vec2).map { case (a, b) => a * b }.sum
+      val dotProduct = vec1.zip(vec2).map { case (a, b) => a * b }.sum
 
-    val magnitude1 = sqrt(vec1.map(a => a * a).sum)
-    val magnitude2 = sqrt(vec2.map(b => b * b).sum)
+      val magnitude1 = sqrt(vec1.map(a => a * a).sum)
+      val magnitude2 = sqrt(vec2.map(b => b * b).sum)
 
-    if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
+      if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
+    } else{
+      val freq1 = ngramFreq(text1, n)
+      val freq2 = ngramFreq(text2, n)
+
+      val allWords = freq1.keySet.union(freq2.keySet)
+      val vec1 = allWords.toList.map(word => freq1.getOrElse(word, n).toDouble)
+      val vec2 = allWords.toList.map(word => freq2.getOrElse(word, n).toDouble)
+
+      val dotProduct = vec1.zip(vec2).map { case (a, b) => a * b }.sum
+
+      val magnitude1 = sqrt(vec1.map(a => a * a).sum)
+      val magnitude2 = sqrt(vec2.map(b => b * b).sum)
+
+      if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
+    }
   }
 }
 
@@ -154,8 +173,10 @@ object fitxers extends App{
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "", usarStopWords = false)
   FuncionsPrimeraPartPractica.main("pg11-net.txt", "english-stop.txt", usarStopWords = true)
   FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
-  FuncionsPrimeraPartPractica.ngramFreq("pg11-net.txt", 3)
-  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt")
+  FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 3)
+  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 0)
+  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 1)
+  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 2)
 }
 
 object tractaxml extends App {
@@ -232,7 +253,6 @@ object exampleMapreduce extends App {
   println("Awaiting")
   // En acabar el MapReduce ens envia un missatge amb el resultat
   val wordCountResult:Map[String,Int] = Await.result(futureresutltwordcount,Duration.Inf).asInstanceOf[Map[String,Int]]
-
 
   println("Results Obtained")
   for(v<-wordCountResult) println(v)
