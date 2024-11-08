@@ -121,9 +121,7 @@ object FuncionsPrimeraPartPractica {
 
   def vector(fitxer1: String, fitxer2: String, stopWordsFile: String, n: Int): Unit = {
     val stopWords = loadStopWords(stopWordsFile)
-    val text1 = Source.fromFile(PATH + fitxer1).mkString
-    val text2 = Source.fromFile(PATH + fitxer2).mkString
-    val similarity = cosinesim(text1, text2, stopWords, n)
+    val similarity = cosinesim(fitxer1, fitxer2, stopWords, n)
     println(f"Cosine Similarity: $similarity%.4f")
   }
 
@@ -134,8 +132,10 @@ object FuncionsPrimeraPartPractica {
   }
 
   // Funció per calcular la similitud de cosinus entre dos documents
-  def cosinesim(text1: String, text2: String, stopWords: Set[String], n: Int): Double = {
+  def cosinesim(fitxer1: String, fitxer2: String, stopWords: Set[String], n: Int): Double = {
     if(n == 0){
+      val text1 = Source.fromFile(PATH + fitxer1).mkString
+      val text2 = Source.fromFile(PATH + fitxer2).mkString
       val freq1 = normalizedFreq(nonstopfreq(text1, stopWords))
       val freq2 = normalizedFreq(nonstopfreq(text2, stopWords))
 
@@ -150,8 +150,8 @@ object FuncionsPrimeraPartPractica {
 
       if (magnitude1 == 0 || magnitude2 == 0) 0.0 else dotProduct / (magnitude1 * magnitude2)
     } else{
-      val freq1 = ngramFreq(text1, n)
-      val freq2 = ngramFreq(text2, n)
+      val freq1 = ngramFreq(fitxer1, n)
+      val freq2 = ngramFreq(fitxer2, n)
 
       val allWords = freq1.keySet.union(freq2.keySet)
       val vec1 = allWords.toList.map(word => freq1.getOrElse(word, n).toDouble)
@@ -175,8 +175,8 @@ object fitxers extends App{
   FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
   FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 3)
   FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 0)
-  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 1)
   FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 2)
+  FuncionsPrimeraPartPractica.vector("pg11.txt", "pg12.txt", "english-stop.txt", 3)
 }
 
 object tractaxml extends App {
