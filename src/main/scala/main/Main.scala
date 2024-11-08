@@ -181,6 +181,7 @@ object fitxers extends App{
   FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 3)
 }
 
+
 object tractaxml extends App {
 
   val parseResult= ViquipediaParse.parseViquipediaFile()
