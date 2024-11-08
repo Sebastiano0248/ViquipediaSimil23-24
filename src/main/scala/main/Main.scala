@@ -219,7 +219,6 @@ object tractaxml extends App {
 }
 
 object exampleMapreduce extends App {
-
   val nmappers = 1
   val nreducers = 1
   val f1 = new java.io.File("f1")
@@ -288,19 +287,76 @@ object exampleMapreduce extends App {
   println("ended shutdown")
   // com tancar el sistema d'actors.
 
-  /*
-  EXERCICIS:
+  // EXERCICI 1: Useu el MapReduce per saber quant ha gastat cada persona.
 
-  Useu el MapReduce per saber quant ha gastat cada persona.
+  val systema1: ActorSystem = ActorSystem("sistema")
 
-  Useu el MapReduce per saber qui ha fet la compra més cara a cada supermercat
+  def mappingE1(lloc: String, compres: List[(String, Double, String)]) :List[(String, Double)] =
+    for ((nom, preu, data) <- compres) yield (nom, preu)
 
-  Useu el MapReduce per saber quant s'ha gastat cada dia a cada supermercat.
-   */
+  def reducingE1(nom:String, preu:List[Double]):(String,Double) =
+    (nom, preu.sum)
 
+  println("Creem l'actor MapReduce per calcular els consums") //  List[(File, List[String])]
+  val gastatPersona = systema1.actorOf(Props(new MapReduce(compres,mappingE1,reducingE1 )), name = "mastercount")
+  var futureresutltGastatPersona = gastatPersona ? mapreduce.MapReduceCompute()
+  println("Esperant")
+  val gastatPersonaResult:Map[String,Double] = Await.result(futureresutltGastatPersona,Duration.Inf).asInstanceOf[Map[String,Double]]
+
+  println("Resultats obtinguts")
+  for(v<-gastatPersonaResult) println(v)
+
+  println("shutdown")
+  systema1.terminate()
+  println("ended shutdown")
+
+  // EXERCICI 2: Useu el MapReduce per saber qui ha fet la compra més cara a cada supermercat
+
+  val systema2: ActorSystem = ActorSystem("sistema")
+
+  def mappingE2(lloc: String, compres: List[(String, Double, String)]) :List[(String, Double)] =
+    for ((nom, preu, data) <- compres) yield (nom, preu)
+
+  def reducingE2(nom:String, preu:List[Double]):(String,Double) =
+    (nom, preu.max)
+
+  println("Creem l'actor MapReduce per calcular els consums màxims") //  List[(File, List[String])]
+  val maxGastatPersona = systema2.actorOf(Props(new MapReduce(compres,mappingE2,reducingE2 )), name = "mastercount")
+  var futureresutltMaxGastatPersona = maxGastatPersona ? mapreduce.MapReduceCompute()
+  println("Esperant")
+  val maxGastatPersonaResult:Map[String,Double] = Await.result(futureresutltMaxGastatPersona,Duration.Inf).asInstanceOf[Map[String,Double]]
+
+  println("Resultats obtinguts")
+  for(v<-maxGastatPersonaResult) println(v)
+
+  println("shutdown")
+  systema2.terminate()
+  println("ended shutdown")
+
+  // EXERCICI 3: Useu el MapReduce per saber quant s'ha gastat cada dia a cada supermercat.
+
+  val systema3: ActorSystem = ActorSystem("sistema")
+
+  def mappingE3(lloc: String, compres: List[(String, Double, String)]) :List[(String, Double)] =
+    for ((nom, preu, data) <- compres) yield (nom, preu)
+
+  def reducingE3(nom:String, preu:List[Double]):(String,Double) =
+    (nom, preu.max)
+
+  println("Creem l'actor MapReduce per calcular els consums màxims") //  List[(File, List[String])]
+  val gastatPersonaDia = systema3.actorOf(Props(new MapReduce(compres,mappingE3,reducingE3 )), name = "mastercount")
+  var futureresutltGastatPersonaDia = gastatPersonaDia ? mapreduce.MapReduceCompute()
+  println("Esperant")
+  val gastatPersonaDiaResult:Map[String,Double] = Await.result(futureresutltGastatPersonaDia,Duration.Inf).asInstanceOf[Map[String,Double]]
+
+  println("Resultats obtinguts")
+  for(v<-gastatPersonaDiaResult) println(v)
+
+  println("shutdown")
+  systema3.terminate()
+  println("ended shutdown")
 
   println("tot enviat, esperant... a veure si triga en PACO")
 }
-
 
 
