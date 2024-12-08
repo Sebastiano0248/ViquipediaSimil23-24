@@ -20,6 +20,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+import mapreduce.ViquipediaParse
+
 // Tenim dos objectes executables
 // - tractaxml utilitza un "protoParser" per la viquipèdia i
 // exampleMapreduce usa el MapReduce
@@ -54,9 +56,32 @@ object FuncionsPrimeraPartPractica {
     }
   }
 
+  def mostrarFreqText(text: String, stopWordsFile: String, usarStopWords: Boolean): Unit = {
+    // Carrega les stop-words si cal
+    val stopWords = if (usarStopWords) loadStopWordstext(stopWordsFile) else Set.empty[String]
+    // Calcula les freqüències de paraules, excloent les stop-words si cal
+    val freqMap = if (usarStopWords) nonstopfreq(text, stopWords) else freq(text)
+
+    // Calcula el nombre total de paraules i paraules diferents
+    val totalWords = freqMap.values.sum
+    val differentWords = freqMap.size
+    println(s"Num de Paraules: $totalWords\tDiferents: $differentWords")
+
+    // Mostra les 10 paraules més freqüents i la seva freqüència relativa
+    println(f"Paraules\tocurrències\tfreqüència")
+    println("-" * 50)
+    freqMap.toList.sortBy(-_._2).take(10).foreach {
+      case (word, count) => println(f"$word%-10s\t$count%-10d\t${(count.toDouble / totalWords) * 100}%.2f")
+    }
+  }
+
   // Funció per carregar les stop-words des d'un fitxer
   def loadStopWords(filePath: String): Set[String] = {
     Source.fromFile(PATH + filePath).getLines().map(_.trim.toLowerCase).toSet
+  }
+
+  def loadStopWordstext(filePath: String): Set[String] = {
+    Source.fromFile(System.getProperty("user.dir") + "/viqui_files/" + filePath).getLines().map(_.trim.toLowerCase).toSet
   }
 
   def cleanText(text: String): Array[String] = {
@@ -359,4 +384,36 @@ object exampleMapreduce extends App {
   println("tot enviat, esperant... a veure si triga en PACO")
 }
 
+
+object PracticaFinal extends App {
+  // Declara les variables per guardar els resultats
+  var t1: String = ""
+  var c1: String = ""
+  var r1: List[String] = List()
+
+  var t2: String = ""
+  var c2: String = ""
+  var r2: List[String] = List()
+
+  // Parseja el primer fitxer
+  val parseResult1 = ViquipediaParse.parseViquipediaFile("viqui_files/22.xml")
+  parseResult1 match {
+    case ViquipediaParse.ResultViquipediaParsing(t, c, r) =>
+      t1 = t
+      c1 = c
+      r1 = r
+  }
+
+  // Parseja el segon fitxer
+  val parseResult2 = ViquipediaParse.parseViquipediaFile("viqui_files/30.xml")
+  parseResult2 match {
+    case ViquipediaParse.ResultViquipediaParsing(t, c, r) =>
+      t2 = t
+      c2 = c
+      r2 = r
+  }
+
+  FuncionsPrimeraPartPractica.mostrarFreqText(c1, "stop-words_catala.txt", usarStopWords = true)
+  FuncionsPrimeraPartPractica.mostrarFreqText(c2, "stop-words_catala.txt", usarStopWords = true)
+}
 
