@@ -219,13 +219,16 @@ object FuncionsPrimeraPartPractica {
 }
 
 object fitxers extends App{
-  FuncionsPrimeraPartPractica.mostrarFreq("pg11-net.txt", "", usarStopWords = false)
-  FuncionsPrimeraPartPractica.mostrarFreq("pg11-net.txt", "english-stop.txt", usarStopWords = true)
-  FuncionsPrimeraPartPractica.paraulafreqfreq("pg11-net.txt")
-  FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 3)
+
+  FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 1)
+  FuncionsPrimeraPartPractica.showNgramFreq("pg11-net.txt", 2)
+  FuncionsPrimeraPartPractica.showNgramFreq("pg12-net.txt", 3)
+  FuncionsPrimeraPartPractica.showNgramFreq("pg74-net.txt", 5)
+
   FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 1)
   FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 2)
   FuncionsPrimeraPartPractica.vector("pg11-net.txt", "pg12-net.txt", "english-stop.txt", 3)
+
 }
 
 
@@ -345,7 +348,7 @@ object exampleMapreduce extends App {
   def reducingE2(nom:String, preu:List[Double]):(String,Double) =
     (nom, preu.max)
 
-  println("Creem l'actor MapReduce per calcular els consums màxims") //  List[(File, List[String])]
+  println("Creem l'actor MapReduce per calcular els consums màxims")
   val maxGastatPersona = systema2.actorOf(Props(new MapReduce(compres,mappingE2,reducingE2 )), name = "mastercount")
   var futureresutltMaxGastatPersona = maxGastatPersona ? mapreduce.MapReduceCompute()
   println("Esperant")
@@ -362,20 +365,20 @@ object exampleMapreduce extends App {
 
   val systema3: ActorSystem = ActorSystem("sistema")
 
-  def mappingE3(lloc: String, compres: List[(String, Double, String)]) :List[(String, Double)] =
-    for ((nom, preu, data) <- compres) yield (nom, preu)
+  def mappingE3(lloc: String, compres: List[(String, Double, String)]) :List[((String,String), Double)] =
+    for ((nom, preu, data) <- compres) yield ((lloc, data), preu)
 
-  def reducingE3(nom:String, preu:List[Double]):(String,Double) =
-    (nom, preu.max)
+  def reducingE3(tupla:(String, String), preu:List[Double]):((String,String),Double) =
+    (tupla, preu.sum)
 
-  println("Creem l'actor MapReduce per calcular els consums màxims") //  List[(File, List[String])]
-  val gastatPersonaDia = systema3.actorOf(Props(new MapReduce(compres,mappingE3,reducingE3 )), name = "mastercount")
-  var futureresutltGastatPersonaDia = gastatPersonaDia ? mapreduce.MapReduceCompute()
+  println("Creem l'actor MapReduce per calcular els consums a cada supermercat cada dia")
+  val gastatPerDia = systema3.actorOf(Props(new MapReduce(compres,mappingE3,reducingE3 )), name = "mastercount")
+  var futureresutltGastatPerDia = gastatPerDia ? mapreduce.MapReduceCompute()
   println("Esperant")
-  val gastatPersonaDiaResult:Map[String,Double] = Await.result(futureresutltGastatPersonaDia,Duration.Inf).asInstanceOf[Map[String,Double]]
+  val gastatPerDiaResult:Map[String,Double] = Await.result(futureresutltGastatPerDia,Duration.Inf).asInstanceOf[Map[String,Double]]
 
   println("Resultats obtinguts")
-  for(v<-gastatPersonaDiaResult) println(v)
+  for(v<-gastatPerDiaResult) println(v)
 
   println("shutdown")
   systema3.terminate()
