@@ -430,163 +430,154 @@ object PracticaFinal extends App {
       case ViquipediaParse.ResultViquipediaParsing(t, c, r) => (t, c, r)
     }
   }
+/*    INTENT DE FER EL CALCUL DEL PR AMB LA TOLERNACIA, (FALLIT PERQUE NO PASSA DE LA PRIMERA ITERACIÓ)
+  val results2 = Array(
+    ("PageA", "ContentA", List("PageB", "PageC")),
+    ("PageB", "ContentB", List("PageC")),
+    ("PageC", "ContentC", List("PageA")),
+    ("PageD", "ContentD", List("PageC"))
+  )
 
-  val totalRefs = results.map(_._3.length).sum
-  val mitja_refs = totalRefs.toDouble / results.length
-  println("Apartat 1: " + mitja_refs)
+  val dampingFactor: Double = 0.85
+  val maxIterations: Int = 100
+  val tolerance: Double = 1e-6
 
+  def computePageRank(results: Array[(String, String, List[String])]): Map[String, Double] = {
+    print("Computing PageRank\n")
+    // Step 1: Build adjacency list
+    val adjacencyList: Map[String, List[String]] = results.map { case (title, _, references) =>
+      title -> references
+    }.toMap
+    print("Adjacency list built\n")
+    val pages: Set[String] = adjacencyList.keySet ++ adjacencyList.values.flatten
+    val numPages: Int = pages.size
+    print("Pages: " + numPages + "\n")
+    // Step 2: Initialize ranks
+    var ranks: Map[String, Double] = pages.map(page => page -> 1.0 / numPages).toMap
+    var iteration = 0
 
+    // Step 3: Iteratively update ranks
+    while (iteration < maxIterations) {
+      print("Iteració: " + iteration + "\n")
+      val newRanks = pages.map { page =>
+        // Páginas que enlazan a la página actual
+        val inboundLinks = adjacencyList.filter(_._2.contains(page)).keys
 
-  val inputString: String = readLine("Enter a string: ")
+        // Si la página no tiene enlaces de salida, distribuye el rank uniformemente
+        val rankSum = inboundLinks.map(link => ranks(link) / adjacencyList(link).size).sum
 
-  val results_2 = results.filter(_._2.contains(inputString))
+        // Calculamos el nuevo PageRank para esta página
+        val newRank = (1 - dampingFactor) / numPages + dampingFactor * rankSum
 
-  // results_2.foreach { case (t, c, r) => println(s"Title: $t") }
+        page -> newRank
+      }.toMap
+      print("New ranks computed\n")
+      // Check convergence
+      val delta = newRanks.map { case (page, newRank) =>
+        math.abs(newRank - ranks(page))
+      }.sum
 
-  var results_3 = results_2.map { case (t, c, r) => (t, r, (1.0/results_2.length)) }
-
-  import scala.collection.mutable
-
-  // Nombre d'iteracions per trobar el punt fix
-  val numIterations = 5
-
-  // Factor de frenada (habitualment 0.85)
-  val dampingFactor = 0.85
-
-  // Total de pàgines
-  val numPages = results_3.length
-
-  // Crear map mutable per gestionar els PageRanks
-  val pageRanks = mutable.Map(results_3.map { case (page, _, rank) => page -> rank }: _*)
-
-  // Mapa d'enllaços sortints
-  val outLinks = results_3.map { case (page, links, _) => page -> links }.toMap
-
-  // Funció per calcular el nou PageRank
-  def computePageRank(): Unit = {
-    val newRanks = mutable.Map[String, Double]().withDefaultValue(0.0)
-    newRanks.foreach { case (t, d) => println(s"$t: $d") }
-    // Distribuir puntuació dels enllaços sortints
-    for ((page, links) <- outLinks) {
-      val currentRank = pageRanks(page)
-      val numLinks = links.size
-//      println("numlinks: " + numLinks)
-      val share = if (numLinks > 0) currentRank / numLinks else 0.0
-//      println("share: " + share)
-      for (link <- links) {
-        newRanks(link) += share
+      if (delta < tolerance) {
+        println(s"Converged after $iteration iterations")
+        return newRanks
       }
-      // newRanks.foreach { case (t, d) => println(s"$t: $d") }
+
+      ranks = newRanks
+      iteration += 1
     }
 
-    // Aplicar el factor de frenada
-    for ((page, _) <- pageRanks) {
-      pageRanks(page) = (1 - dampingFactor) / numPages + dampingFactor * newRanks(page)
-    }
+    ranks
   }
 
-  // Iterar fins a la convergència
-  for (_ <- 1 to numIterations) {
-    computePageRank()
+  val ranks = computePageRank(results)
+  ranks.toSeq.sortBy(-_._2).foreach { case (page, rank) =>
+    println(f"$page%s: $rank%1.6f")
   }
-
-  // Mostrar els PageRanks finals
-  pageRanks.foreach { case (page, rank) =>
-    println(f"Page: $page, Rank: $rank%.6f")
-  }
+*/
 
 
-  //
-  //    // Parseja el segon fitxer
-  //    val parseResult2 = ViquipediaParse.parseViquipediaFile("viqui_files/30.xml")
-  //    parseResult2 match {
-  //      case ViquipediaParse.ResultViquipediaParsing(t, c, r) =>
-  //        t2 = t
-  //        c2 = c
-  //        r2 = r
-  //    }
+  //APARTAT 1
+   val totalRefs = results.map(_._3.length).sum
+   val mitja_refs = totalRefs.toDouble / results.length
+   println("Apartat 1: " + mitja_refs)
+//
+//
+//
+   val inputString: String = readLine("Enter a string: ")
+//
+   val results_2 = results.filter(_._2.contains(inputString))
+//
+   // results_2.foreach { case (t, c, r) => println(s"Title: $t") }
+//
+   var results_3 = results_2.map { case (t, c, r) => (t, r, (1.0/results_2.length)) }
+//
+   import scala.collection.mutable
+//
+   // Nombre d'iteracions per trobar el punt fix
+   val numIterations = 5
+//
+   // Factor de frenada (habitualment 0.85)
+   val dampingFactor = 0.85
+//
+   // Total de pàgines
+   val numPages = results_3.length
+//
+   // Crear map mutable per gestionar els PageRanks
+   val pageRanks = mutable.Map(results_3.map { case (page, _, rank) => page -> rank }: _*)
+//
+   // Mapa d'enllaços sortints
+   val outLinks = results_3.map { case (page, links, _) => page -> links }.toMap
+//
+   // Funció per calcular el nou PageRank (INTENT SENSE LA TOLERANCIA, NO CALCULA BÉ PERQUE TOTS ELS PR SURTEN IGUAL)
+   def computePageRank(): Unit = {
+     val newRanks = mutable.Map[String, Double]().withDefaultValue(0.0)
+     //newRanks.foreach { case (t, d) => println(s"$t: $d") }
+     // Distribuir puntuació dels enllaços sortints
+     for ((page, links) <- outLinks) {
+       val currentRank = pageRanks(page)
+       val numLinks = links.size
+//       println("numlinks: " + numLinks)
+       val share = if (numLinks > 0) currentRank / numLinks else 0.0
+//       println("share: " + share)
+       for (link <- links) {
+         newRanks(link) += share
+       }
+//
+     }
+     //newRanks.foreach { case (t, d) => println(s"$t: $d") }
+     // Aplicar el factor de frenada
+     // for ((page, _) <- pageRanks) {
+     //   pageRanks(page) = newRanks(page)
+     // }
+   }
+//
+   // Iterar fins a la convergència
+   for (_ <- 1 to numIterations) {
+     computePageRank()
+   }
+//
+   // Mostrar els PageRanks finals
+   pageRanks.foreach { case (page, rank) =>
+     println(f"Page: $page, Rank: $rank%.6f")
+   }
+
+
+
+      // Parseja el segon fitxer
+      val parseResult2 = ViquipediaParse.parseViquipediaFile("viqui_files/30.xml")
+      parseResult2 match {
+        case ViquipediaParse.ResultViquipediaParsing(t, c, r) =>
+          t2 = t
+          c2 = c
+          r2 = r
+      }
 //
   //    // FuncionsPrimeraPartPractica.mostrarFreqText(c1, "stop-words_catala.txt", usarStopWords = true)
   //    // FuncionsPrimeraPartPractica.mostrarFreqText(c2, "stop-words_catala.txt", usarStopWords = true)
   //    val array1 = FuncionsPrimeraPartPractica.retornFreqText(c1, "stop-words_catala.txt", usarStopWords = true)
   //    val array2 = FuncionsPrimeraPartPractica.retornFreqText(c1, "stop-words_catala.txt", usarStopWords = true)
   //    array1.foreach { case (word, freq) => println(s"Word: $word, Frequency: $freq") }
-//
-//
-//
-//
-//
-//
-//
-  //    val nmappers = 1
-  //    val nreducers = 1
-  //    val f1 = new java.io.File("f1")
-  //    val f2 = new java.io.File("f2")
-  //    val f3 = new java.io.File("f3")
-  //    val f4 = new java.io.File("f4")
-  //    val f5 = new java.io.File("f5")
-  //    val f6 = new java.io.File("f6")
-  //    val f7 = new java.io.File("f7")
-  //    val f8 = new java.io.File("f8")
-//
-  //    val fitxers: List[(File, List[String])] = List(
-  //      (f1, List("hola", "adeu", "per", "palotes", "hola","hola", "adeu", "pericos", "pal", "pal", "pal")),
-  //      (f2, List("hola", "adeu", "pericos", "pal", "pal", "pal")),
-  //      (f3, List("que", "tal", "anem", "be")),
-  //      (f4, List("be", "tal", "pericos", "pal")),
-  //      (f5, List("doncs", "si", "doncs", "quin", "pal", "doncs")),
-  //      (f6, List("quin", "hola", "vols", "dir")),
-  //      (f7, List("hola", "no", "pas", "adeu")),
-  //      (f8, List("ahh", "molt", "be", "adeu")))
-//
-//
-  //    val compres: List[(String,List[(String,Double, String)])] = List(
-  //      ("bonpeu",List(("pep", 10.5, "1/09/20"), ("pep", 13.5, "2/09/20"), ("joan", 30.3, "2/09/20"), ("marti", 1.5, "2/09/20"), ("pep", 10.5, "3/09/20"))),
-  //      ("sordi", List(("pep", 13.5, "4/09/20"), ("joan", 30.3, "3/09/20"), ("marti", 1.5, "1/09/20"), ("pep", 7.1, "5/09/20"), ("pep", 11.9, "6/09/20"))),
-  //      ("canbravo", List(("joan", 40.4, "5/09/20"), ("marti", 100.5, "5/09/20"), ("pep", 10.5, "7/09/20"), ("pep", 13.5, "8/09/20"), ("joan", 30.3, "7/09/20"), ("marti", 1.5, "6/09/20"))),
-  //      ("maldi", List(("pepa", 10.5, "3/09/20"), ("pepa", 13.5, "4/09/20"), ("joan", 30.3, "8/09/20"), ("marti", 0.5, "8/09/20"), ("pep", 72.1, "9/09/20"), ("mateu", 9.9, "4/09/20"), ("mateu", 40.4, "5/09/20"), ("mateu", 100.5, "6/09/20")))
-  //    )
-//
-  //    // Creem el sistema d'actors
-  //    val systema: ActorSystem = ActorSystem("sistema")
-//
-  //    // funcions per poder fer un word count
-  //    def mappingWC(file:File, words:List[String]) :List[(String, Int)] =
-  //      for (word <- words) yield (word, 1)
-//
-//
-  //    def reducingWC(word:String, nums:List[Int]):(String,Int) =
-  //      (word, nums.sum)
-//
-//
-  //    println("Creem l'actor MapReduce per fer el wordCount")
-  //    val wordcount = systema.actorOf(Props(new MapReduce(fitxers,mappingWC,reducingWC )), name = "mastercount")
-//
-  //    // Els Futures necessiten que se'ls passi un temps d'espera, un pel future i un per esperar la resposta.
-  //    // La idea és esperar un temps limitat per tal que el codi no es quedés penjat ja que si us fixeu preguntar
-  //    // i esperar denota sincronització. En el nostre cas, al saber que el codi no pot avançar fins que tinguem
-  //    // el resultat del MapReduce, posem un temps llarg (100000s) al preguntar i una Duration.Inf a l'esperar la resposta.
-//
-  //    // Enviem un missatge com a pregunta (? enlloc de !) per tal que inicii l'execució del MapReduce del wordcount.
-  //    //var futureresutltwordcount = wordcount.ask(mapreduce.MapReduceCompute())(100000 seconds)
-//
-  //    implicit val timeout = Timeout(10000 seconds) // L'implicit permet fixar el timeout per a la pregunta que enviem al wordcount. És obligagori.
-  //    var futureresutltwordcount = wordcount ? mapreduce.MapReduceCompute()
-//
-  //    println("Awaiting")
-  //    // En acabar el MapReduce ens envia un missatge amb el resultat
-  //    val wordCountResult:Map[String,Int] = Await.result(futureresutltwordcount,Duration.Inf).asInstanceOf[Map[String,Int]]
-//
-  //    println("Results Obtained")
-  //    for(v<-wordCountResult) println(v)
-//
-  //    // Fem el shutdown del actor system
-  //    println("shutdown")
-  //    systema.terminate()
-  //    println("ended shutdown")
-  //    // com tancar el sistema d'actors.
-//
-//
+
 
 }
 
