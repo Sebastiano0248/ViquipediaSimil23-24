@@ -431,135 +431,69 @@ object PracticaFinal extends App {
     }
   }
 
-  val results2 = Array(
-    ("PageA", "ContentA", List("PageB", "PageC")),
-    ("PageB", "ContentB", List("PageC")),
-    ("PageC", "ContentC", List("PageA")),
-    ("PageD", "ContentD", List("PageC"))
-  )
+  val totalRefs = results.map(_._3.length).sum
+  val mitja_refs = totalRefs.toDouble / results.length
+  println("Apartat 1: " + mitja_refs)
 
-  val dampingFactor: Double = 0.85
-  val maxIterations: Int = 100
-  val tolerance: Double = 1e-6
 
-  def computePageRank(results: Array[(String, String, List[String])]): Map[String, Double] = {
-    print("Computing PageRank\n")
-    // Step 1: Build adjacency list
-    val adjacencyList: Map[String, List[String]] = results.map { case (title, _, references) =>
-      title -> references
-    }.toMap
-    print("Adjacency list built\n")
-    val pages: Set[String] = adjacencyList.keySet ++ adjacencyList.values.flatten
-    val numPages: Int = pages.size
-    print("Pages: " + numPages + "\n")
-    // Step 2: Initialize ranks
-    var ranks: Map[String, Double] = pages.map(page => page -> 1.0 / numPages).toMap
-    var iteration = 0
 
-    // Step 3: Iteratively update ranks
-    while (iteration < maxIterations) {
-      print("Iteració: " + iteration + "\n")
-      val newRanks = pages.map { page =>
-        // Páginas que enlazan a la página actual
-        val inboundLinks = adjacencyList.filter(_._2.contains(page)).keys
+  val inputString: String = readLine("Enter a string: ")
 
-        // Si la página no tiene enlaces de salida, distribuye el rank uniformemente
-        val rankSum = inboundLinks.map(link => ranks(link) / adjacencyList(link).size).sum
+  val results_2 = results.filter(_._2.contains(inputString))
 
-        // Calculamos el nuevo PageRank para esta página
-        val newRank = (1 - dampingFactor) / numPages + dampingFactor * rankSum
+  // results_2.foreach { case (t, c, r) => println(s"Title: $t") }
 
-        page -> newRank
-      }.toMap
-      print("New ranks computed\n")
-      // Check convergence
-      val delta = newRanks.map { case (page, newRank) =>
-        math.abs(newRank - ranks(page))
-      }.sum
+  var results_3 = results_2.map { case (t, c, r) => (t, r, (1.0/results_2.length)) }
 
-      if (delta < tolerance) {
-        println(s"Converged after $iteration iterations")
-        return newRanks
+  import scala.collection.mutable
+
+  // Nombre d'iteracions per trobar el punt fix
+  val numIterations = 5
+
+  // Factor de frenada (habitualment 0.85)
+  val dampingFactor = 0.85
+
+  // Total de pàgines
+  val numPages = results_3.length
+
+  // Crear map mutable per gestionar els PageRanks
+  val pageRanks = mutable.Map(results_3.map { case (page, _, rank) => page -> rank }: _*)
+
+  // Mapa d'enllaços sortints
+  val outLinks = results_3.map { case (page, links, _) => page -> links }.toMap
+
+  // Funció per calcular el nou PageRank
+  def computePageRank(): Unit = {
+    val newRanks = mutable.Map[String, Double]().withDefaultValue(0.0)
+    newRanks.foreach { case (t, d) => println(s"$t: $d") }
+    // Distribuir puntuació dels enllaços sortints
+    for ((page, links) <- outLinks) {
+      val currentRank = pageRanks(page)
+      val numLinks = links.size
+//      println("numlinks: " + numLinks)
+      val share = if (numLinks > 0) currentRank / numLinks else 0.0
+//      println("share: " + share)
+      for (link <- links) {
+        newRanks(link) += share
       }
-
-      ranks = newRanks
-      iteration += 1
+      // newRanks.foreach { case (t, d) => println(s"$t: $d") }
     }
 
-    ranks
+    // Aplicar el factor de frenada
+    for ((page, _) <- pageRanks) {
+      pageRanks(page) = (1 - dampingFactor) / numPages + dampingFactor * newRanks(page)
+    }
   }
 
-  val ranks = computePageRank(results)
-  ranks.toSeq.sortBy(-_._2).foreach { case (page, rank) =>
-    println(f"$page%s: $rank%1.6f")
+  // Iterar fins a la convergència
+  for (_ <- 1 to numIterations) {
+    computePageRank()
   }
 
-
-
-
-  // val totalRefs = results.map(_._3.length).sum
-  // val mitja_refs = totalRefs.toDouble / results.length
-  // println("Apartat 1: " + mitja_refs)
-//
-//
-//
-  // val inputString: String = readLine("Enter a string: ")
-//
-  // val results_2 = results.filter(_._2.contains(inputString))
-//
-  // // results_2.foreach { case (t, c, r) => println(s"Title: $t") }
-//
-  // var results_3 = results_2.map { case (t, c, r) => (t, r, (1.0/results_2.length)) }
-//
-  // import scala.collection.mutable
-//
-  // // Nombre d'iteracions per trobar el punt fix
-  // val numIterations = 5
-//
-  // // Factor de frenada (habitualment 0.85)
-  // val dampingFactor = 0.85
-//
-  // // Total de pàgines
-  // val numPages = results_3.length
-//
-  // // Crear map mutable per gestionar els PageRanks
-  // val pageRanks = mutable.Map(results_3.map { case (page, _, rank) => page -> rank }: _*)
-//
-  // // Mapa d'enllaços sortints
-  // val outLinks = results_3.map { case (page, links, _) => page -> links }.toMap
-//
-  // // Funció per calcular el nou PageRank
-  // def computePageRank(): Unit = {
-  //   val newRanks = mutable.Map[String, Double]().withDefaultValue(0.0)
-  //   newRanks.foreach { case (t, d) => println(s"$t: $d") }
-  //   // Distribuir puntuació dels enllaços sortints
-  //   for ((page, links) <- outLinks) {
-  //     val currentRank = pageRanks(page)
-  //     val numLinks = links.size
-////       println("numlinks: " + numLinks)
-  //     val share = if (numLinks > 0) currentRank / numLinks else 0.0
-////       println("share: " + share)
-  //     for (link <- links) {
-  //       newRanks(link) += share
-  //     }
-//
-  //   }
-  //   newRanks.foreach { case (t, d) => println(s"$t: $d") }
-  //   // Aplicar el factor de frenada
-  //   // for ((page, _) <- pageRanks) {
-  //   //   pageRanks(page) = newRanks(page)
-  //   // }
-  // }
-//
-  // // Iterar fins a la convergència
-  // for (_ <- 1 to numIterations) {
-  //   computePageRank()
-  // }
-//
-  // // Mostrar els PageRanks finals
-  // pageRanks.foreach { case (page, rank) =>
-  //   println(f"Page: $page, Rank: $rank%.6f")
-  // }
+  // Mostrar els PageRanks finals
+  pageRanks.foreach { case (page, rank) =>
+    println(f"Page: $page, Rank: $rank%.6f")
+  }
 
 
   //
